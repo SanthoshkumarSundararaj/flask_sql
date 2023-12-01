@@ -1,31 +1,41 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
+import sqlite3
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///example.db'  # SQLite database file
-db = SQLAlchemy(app)
 
-class Item(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+def create_table():
+    conn = sqlite3.connect('example.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
-#
 @app.route('/')
 def index():
-    items = Item.query.all()
+    create_table()
+    conn = sqlite3.connect('example.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM items')
+    items = cursor.fetchall()
+    conn.close()
     return render_template('index.html', items=items)
 
 @app.route('/add', methods=['POST'])
 def add():
     if request.method == 'POST':
         item_name = request.form['item_name']
-        new_item = Item(name=item_name)
-        db.session.add(new_item)
-        db.session.commit()
+        conn = sqlite3.connect('example.db')
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO items (name) VALUES (?)', (item_name,))
+        conn.commit()
+        conn.close()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
 
