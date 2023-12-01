@@ -6,12 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flask SQLite Example</title>
 </head>
-
 <body>
     <h1>Items</h1>
     <ul>
         {% for item in items %}
-            <li>{{ item.name }}</li>
+            <li>{{ item[1] }}</li>
         {% endfor %}
     </ul>
     <form method="POST" action="{{ url_for('add') }}">
@@ -21,4 +20,3 @@
     </form>
 </body>
 </html>
-
